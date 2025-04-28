@@ -9,6 +9,8 @@ Devido a limitações de tamanho de armazenamento no Heroku, o deploy atual não
 
 Para rodar a versão mais atualizada, recomendamos que você configure o ambiente localmente. Siga as instruções abaixo para rodar o projeto localmente.
 
+![DEMO](./demo.png)
+
 ## 🌟 O que este projeto faz?
 
 Este protótipo foi desenvolvido para ajudar clubes como a FURIA a conhecerem seus fãs de esports. Ele permite:
