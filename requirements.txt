@@ -1,6 +1,6 @@
-streamlit
-pandas
-numpy
-scikit-learn
-pytesseract
-pillow
+streamlit==1.36.0
+pandas==2.2.2
+pytesseract==0.3.10
+Pillow==10.3.0
+scikit-learn==1.5.0
+numpy==1.26.4
