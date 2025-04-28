@@ -9,11 +9,14 @@ import tempfile
 import pytesseract
 from PIL import Image
 
+import os
+
 # Configurar o caminho do Tesseract
 if os.name == 'nt':  # Windows
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:  # Heroku/Linux
-    pytesseract.pytesseract.tesseract_cmd = 'tesseract'  
+    # No Heroku, o Tesseract geralmente está disponível em /app/.apt/usr/bin/tesseract quando instalado via heroku-community/apt
+    pytesseract.pytesseract.tesseract_cmd = '/app/.apt/usr/bin/tesseract' 
 
 # Inicializar o estado da sessão para armazenar dados do usuário e jogadores selecionados
 if 'dados_usuario' not in st.session_state:
