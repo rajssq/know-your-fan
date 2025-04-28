@@ -2,7 +2,7 @@
 
 Bem-vindo ao **Know Your Fan**! Este é um projeto criado para o **Challenge #2 da FURIA**, com o objetivo de conhecer melhor os fãs do time e oferecer experiências personalizadas. Este protótipo coleta informações sobre você, valida documentos, conecta redes sociais e sugere experiências incríveis!
 
----
+### 👉[Acesse Aqui](https://furia-487cb4f5168c.herokuapp.com/)
 
 ## 🌟 O que este projeto faz?
 
