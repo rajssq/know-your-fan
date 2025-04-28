@@ -13,7 +13,7 @@ from PIL import Image
 if os.name == 'nt':  # Windows
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:  # Heroku/Linux
-    pytesseract.pytesseract.tesseract_cmd = 'tesseract'  # Tesseract estará no PATH no Heroku
+    pytesseract.pytesseract.tesseract_cmd = 'tesseract'  
 
 # Inicializar o estado da sessão para armazenar dados do usuário e jogadores selecionados
 if 'dados_usuario' not in st.session_state:
@@ -45,12 +45,12 @@ conn.commit()
 conn.close()
 
 # Configuração da página
-st.set_page_config(page_title="Know Your Fan - FURIA", page_icon="https://cdn.dribbble.com/userupload/11627401/file/original-405f194bea083344029e99856c00f6f8.png?resize=1024x768&vertical=center", layout="wide")
+st.set_page_config(page_title="Know Your Fan - FURIA", page_icon="https://cdn.dribbble.com/userupload/11627401/file/original-405f194bea083344029e99856c00f6f8.png?resize=1024x768&vertical=center")
 
 st.markdown(
     """
     <style>
-    /* Definir a imagem de fundo para o corpo da página */
+
     .stApp {
         background: url("https://pbs.twimg.com/media/F98rmOiWYAAFMyD?format=jpg&name=large");
         background-size: cover;
@@ -59,34 +59,30 @@ st.markdown(
         color: white; /* Texto branco para contraste */
     }
 
-    /* Adicionar um fundo preto opaco para os elementos do formulário */
     .stTextInput, .stSelectbox, .stTextArea, .stButton, .stForm {
         background-color: rgb(0, 0, 0); /* Fundo preto opaco */
         padding: 10px;
         border-radius: 5px;
     }
 
-    /* Manter fundo semi-transparente para outras seções */
-    .stMarkdown, .stFileUploader,st.multiselect, .stSuccess, .stInfo {
+    .stMarkdown, .stFileUploader, .stMultiselect, .stSuccess, .stInfo {
         background-color: rgba(0, 0, 0, 0.7); /* Fundo preto semi-transparente */
         padding: 10px;
         border-radius: 5px;
     }
 
-    /* Garantir que os cabeçalhos também sejam brancos */
     h1, h2, h3, h4, h5, h6 {
         color: white;
     }
 
-    /* Ajustar a cor do texto dentro dos contêineres */
     .stMarkdown p, .stMarkdown div, .stTextInput input, .stTextArea textarea, .stSelectbox div, .stButton button {
         color: white;
     }
 
-    /* Ajustar bordas dos contêineres para melhor contraste */
     .stContainer {
         border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
     </style>
     """,
     unsafe_allow_html=True
@@ -94,7 +90,7 @@ st.markdown(
 
 # Função para coletar dados do usuário
 def coletar_dados_usuario():
-    st.header("🔥Queremos conhecer você!")
+    st.header("🔥 Queremos conhecer você!")
     st.write("Preencha os dados abaixo para que possamos personalizar sua experiência como FURIOSO.")
     with st.form("form_usuario"):
         nome = st.text_input("Nome completo")
@@ -125,7 +121,7 @@ def coletar_dados_usuario():
             })
             dados.to_sql('usuarios', conn, if_exists='append', index=False)
             conn.close()
-            # Armazenar os dados no estado da sessão
+            
             st.session_state['dados_usuario'] = dados
             st.session_state['jogadores_selecionados'] = jogadores_favoritos
             st.success("Dados salvos com sucesso!")
@@ -147,17 +143,17 @@ def validar_documento(imagem_path):
 
 # Função para coletar dados do Twitter/X (simulada devido ao plano gratuito)
 def coletar_dados_twitter(username):
-    following = ["FURIA", "LOUD", "TeamLiquid"]
+    following = ["FURIA", "jaimepadua", "MIBR"]
     interacoes = ["Assisti ao Major CS:GO 2024! #FURIA", "Jogando Valorant hoje! #esports"]
     return {"following": following, "interacoes": interacoes}
 
-# Dados fictícios de experiências
+
 experiencias = pd.DataFrame({
     'EXPERIENCIA': [
         'PGL Astana 2025',
         'IEM Dallas 2025',
         'BLAST Austin Major 2025',
-        'Camiseta ULTRAS',
+        'Moletom Oversized Furia x Zor Chumbo',
         'Camiseta FURIA x Adidas',
         'Jersey FURIA 2025',
         'Workshop Valorant',
@@ -198,65 +194,112 @@ experiencias = pd.DataFrame({
     'FEATURE3': [0, 0, 0, 0, 0, 0, 1, 1]   # Workshops/Conteúdo
 })
 
-# Função para recomendar experiências
+# Função para recomendar experiências usando aprendizado de máquina (KNN)
 def recomendar_experiencias(dados_usuario):
     if dados_usuario is None or dados_usuario.empty:
         return pd.DataFrame()
 
-    # Extrair preferências do usuário
-    usuario_features = [0, 0, 0]  # [Eventos, Produtos, Workshops/Conteúdo]
+    # Passo 1: Criar features do usuário com base nas preferências
+    usuario_features = [0.0, 0.0, 0.0]  # [Eventos, Produtos, Workshops/Conteúdo]
     jogos_favoritos = dados_usuario['JOGOS'].iloc[0].split(',') if 'JOGOS' in dados_usuario and dados_usuario['JOGOS'].iloc[0] else []
-    jogadores_favoritos = dados_usuario['JOGADORES'].iloc[0].split(',') if 'JOGADORES' in dados_usuario and dados_usuario['JOGADORES'].iloc[0] else []
+    jogadores_favoritos = dados_usuario['JOGADORES'].iloc[0].split(',') if 'JOGADORES' in dados_usuario and dados_usuario['JOGOS'].iloc[0] else []
 
-    # Definir features do usuário
+    # Definir features com base nas preferências, com pesos mais granulares
     if 'EVENTOS' in dados_usuario and dados_usuario['EVENTOS'].iloc[0]:
-        usuario_features[0] = 1  # Interesse em eventos
+        usuario_features[0] = 1.0  # Interesse em eventos
+        # Aumentar o peso com base na quantidade de eventos mencionados (aproximado pelo tamanho do texto)
+        usuario_features[0] += len(dados_usuario['EVENTOS'].iloc[0].split()) * 0.1
     if 'COMPRAS' in dados_usuario and dados_usuario['COMPRAS'].iloc[0]:
-        usuario_features[1] = 1  # Interesse em produtos
+        usuario_features[1] = 1.0  # Interesse em produtos
+        # Aumentar o peso com base na quantidade de compras mencionadas
+        usuario_features[1] += len(dados_usuario['COMPRAS'].iloc[0].split()) * 0.1
     if 'Valorant' in jogos_favoritos:
-        usuario_features[2] = 1  # Interesse em workshops/conteúdo (Valorant)
+        usuario_features[2] = 1.0  # Interesse em workshops/conteúdo (Valorant)
+    if 'CS:GO' in jogos_favoritos:
+        usuario_features[0] += 0.5  # Interesse maior em eventos de CS:GO
+    if 'League of Legends' in jogos_favoritos:
+        usuario_features[2] += 0.5  # Interesse em workshops/conteúdo (LoL)
 
-    # Ajustar pesos com base nos jogadores favoritos (todos são de CS:GO)
+    # Ajustar pesos com base nos jogadores favoritos (reduzido para evitar dominância)
     if jogadores_favoritos:
-        usuario_features[0] += 0.5  # Aumentar peso para eventos (todos os jogadores são de CS:GO)
-        usuario_features[1] += 0.5  # Aumentar peso para produtos (ex.: camisetas dos jogadores)
+        usuario_features[0] += len(jogadores_favoritos) * 0.1  # Incremento proporcional ao número de jogadores
+        usuario_features[1] += len(jogadores_favoritos) * 0.1  # Interesse em produtos personalizados
 
-    # Filtrar experiências com base nos jogos favoritos
+    # Garantir que as features não sejam todas zero (caso o usuário preencha pouco)
+    if sum(usuario_features) == 0:
+        usuario_features = [0.5, 0.5, 0.5]  # Default para evitar recomendações genéricas
+
+    # Passo 2: Filtrar experiências, mas manter diversidade
     experiencias_filtradas = experiencias.copy()
     if jogos_favoritos:
         mask = experiencias_filtradas['JOGO'].apply(lambda x: x in jogos_favoritos or x == 'Geral')
         experiencias_filtradas = experiencias_filtradas[mask]
+        # Garantir pelo menos 4 opções para o KNN ter variedade
+        if len(experiencias_filtradas) < 4:
+            experiencias_filtradas = pd.concat([experiencias_filtradas, experiencias[~experiencias.index.isin(experiencias_filtradas.index)]], ignore_index=True)
 
     if experiencias_filtradas.empty:
-        experiencias_filtradas = experiencias  # Se não houver correspondência, usar todas as experiências
+        experiencias_filtradas = experiencias  # Fallback para todas as experiências
 
-    # Aplicar KNN para encontrar as experiências mais próximas
+    # Passo 3: Preparar os dados para o modelo KNN
     X = experiencias_filtradas[['FEATURE1', 'FEATURE2', 'FEATURE3']].values
     if len(X) == 0:
         return pd.DataFrame()
 
-    knn = NearestNeighbors(n_neighbors=min(3, len(X)), metric='euclidean')
+    # Passo 4: Treinar o modelo KNN
+    knn = NearestNeighbors(n_neighbors=min(4, len(X)), algorithm='brute', metric='euclidean')
     knn.fit(X)
+
+    # Passo 5: Fazer a previsão com o KNN
     distances, indices = knn.kneighbors([usuario_features])
 
-    # Obter recomendações iniciais
+    # Passo 6: Obter as recomendações iniciais com base no modelo
     recomendacoes = experiencias_filtradas.iloc[indices[0]][['EXPERIENCIA', 'TIPO', 'JOGO', 'TIME']]
 
-    # Garantir diversidade: tentar incluir pelo menos um evento, um produto e um workshop/conteúdo
-    tipos_presentes = recomendacoes['TIPO'].tolist()
-    if len(recomendacoes) < 3:
-        tipos_desejados = ['Evento', 'Produto', 'Workshop' if 'Workshop' in experiencias_filtradas['TIPO'].values else 'Conteúdo']
+    # Passo 7: Garantir diversidade nas recomendações, mas respeitando as distâncias do KNN
+    tipos_desejados = ['Evento', 'Produto', 'Workshop' if 'Workshop' in experiencias_filtradas['TIPO'].values else 'Conteúdo']
+    recomendacoes_final = pd.DataFrame(columns=['EXPERIENCIA', 'TIPO', 'JOGO', 'TIME'])
+    tipos_presentes = []
+
+    # Adicionar recomendações do KNN, priorizando diversidade
+    for i in range(len(recomendacoes)):
+        rec = recomendacoes.iloc[i:i+1]
+        tipo = rec['TIPO'].iloc[0]
+        if tipo not in tipos_presentes:
+            recomendacoes_final = pd.concat([recomendacoes_final, rec], ignore_index=True)
+            tipos_presentes.append(tipo)
+        if len(recomendacoes_final) >= 3:
+            break
+
+    # Se ainda faltarem recomendações, buscar mais opções mantendo a ordem de proximidade
+    if len(recomendacoes_final) < 3:
         for tipo in tipos_desejados:
-            if tipo not in tipos_presentes and len(recomendacoes) < 3:
-                # Buscar uma experiência do tipo desejado
+            if tipo not in tipos_presentes:
                 opcoes = experiencias_filtradas[experiencias_filtradas['TIPO'] == tipo]
                 if not opcoes.empty:
-                    # Adicionar a primeira opção disponível
-                    nova_recomendacao = opcoes.iloc[0][['EXPERIENCIA', 'TIPO', 'JOGO', 'TIME']]
-                    recomendacoes = pd.concat([recomendacoes, pd.DataFrame([nova_recomendacao])], ignore_index=True)
-                    tipos_presentes.append(tipo)
+                    # Encontrar a opção mais próxima do usuário entre as disponíveis
+                    X_opcoes = opcoes[['FEATURE1', 'FEATURE2', 'FEATURE3']].values
+                    if len(X_opcoes) > 0:
+                        _, idx = knn.kneighbors([usuario_features], n_neighbors=len(X_opcoes))
+                        for i in idx[0]:
+                            rec = opcoes.iloc[i:i+1]
+                            if rec['EXPERIENCIA'].iloc[0] not in recomendacoes_final['EXPERIENCIA'].values:
+                                recomendacoes_final = pd.concat([recomendacoes_final, rec], ignore_index=True)
+                                tipos_presentes.append(tipo)
+                                break
+            if len(recomendacoes_final) >= 3:
+                break
 
-    return recomendacoes.head(3)  # Retornar no máximo 3 recomendações
+    
+    if len(recomendacoes_final) < 3:
+        for i in range(len(recomendacoes)):
+            rec = recomendacoes.iloc[i:i+1]
+            if rec['EXPERIENCIA'].iloc[0] not in recomendacoes_final['EXPERIENCIA'].values:
+                recomendacoes_final = pd.concat([recomendacoes_final, rec], ignore_index=True)
+            if len(recomendacoes_final) >= 3:
+                break
+
+    return recomendacoes_final.head(3)  # Retornar no máximo 3 recomendações
 
 # Função para sugerir produtos ou redes sociais com base nos jogadores selecionados
 def sugerir_produtos_ou_redes(jogadores_selecionados):
@@ -275,15 +318,15 @@ def sugerir_produtos_ou_redes(jogadores_selecionados):
     sugestoes = []
     for jogador in jogadores_selecionados:
         if len(sugestoes) % 2 == 0:
-            sugestoes.append(f"Que tal uma camiseta personalizada do {jogador}? Disponível na loja oficial da FURIA!")
+            sugestoes.append(f"Que tal um produto personalizado do {jogador}? Disponível na loja oficial da FURIA!")
         else:
-            sugestoes.append(f"Siga o {jogador} nas redes sociais: {redes_sociais.get(jogador, 'Não disponível')}")
+            sugestoes.append(f"Você é fã do {jogador}? Então segue ele nas redes sociais: {redes_sociais.get(jogador, 'Não disponível')}")
     
     return "\n".join(sugestoes)
 
 # Interface principal
 if __name__ == "__main__":
-    st.title("Know Your Fan - Protótipo para Fãs da FURIA")
+    st.title("Know Your Fan - Personalize sua Experiência com a FURIA")
     dados_usuario, jogadores_selecionados = coletar_dados_usuario()
 
     # Upload de documento
@@ -324,10 +367,10 @@ if __name__ == "__main__":
     # Recomendações e sugestões (usando o estado da sessão)
     if st.session_state['dados_usuario'] is not None and not st.session_state['dados_usuario'].empty:
         st.header("🎯 Recomendações Personalizadas")
+        st.write("Usamos um modelo de aprendizado de máquina (K-Nearest Neighbors) para recomendar experiências com base nas suas preferências. Veja o que encontramos para você:")
         recomendacoes = recomendar_experiencias(st.session_state['dados_usuario'])
         
         if not recomendacoes.empty:
-            st.write("Com base no seu perfil, recomendamos as seguintes experiências:")
             st.divider()
             
             for idx, row in recomendacoes.iterrows():
