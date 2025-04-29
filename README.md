@@ -7,7 +7,7 @@ Bem-vindo ao **Know Your Fan**! Este é um projeto criado para o **Challenge #2 
 ### Aviso sobre o Deploy
 Devido a limitações de tamanho de armazenamento no Heroku, o deploy atual não está atualizado com a versão mais recente do projeto. O tamanho do arquivo ultrapassa o limite de armazenamento do Heroku, o que impede o envio da versão mais atual.
 
-Para rodar a versão mais atualizada, recomendamos que você configure o ambiente localmente. Siga as instruções abaixo para rodar o projeto localmente.
+Para rodar a versão mais atualizada, recomendo que você configure o ambiente localmente. Siga as instruções abaixo para rodar o projeto localmente.
 
 ![DEMO](./demo.png)
 
